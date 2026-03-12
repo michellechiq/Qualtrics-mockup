@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Program Compliance Survey – Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1f6eb5; --blue-light: #e8f1fb; --blue-btn: #0b5ed7;
+    --gray-border: #c8c8c8; --gray-bg: #f4f4f4; --gray-input: #f9f9f9;
+    --text: #2c2c2c; --required: #c0392b;
+  }
+  body { font-family: 'Source Sans 3', sans-serif; background: #ebebeb; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 80px; }
+  .survey-wrapper { width: 100%; max-width: 960px; }
+  .survey-header { background: var(--blue); color: white; padding: 18px 32px; font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; border-radius: 4px 4px 0 0; }
+  .progress-bar-wrap { background: #d0d0d0; height: 6px; }
+  .progress-bar { height: 100%; background: var(--blue); transition: width 0.4s ease; }
+  .page { display: none; background: white; padding: 40px 48px 32px; border: 1px solid #ccc; }
+  .page.active { display: block; }
+  .page-label { font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px; }
+  .q-block { margin-bottom: 30px; }
+  .q-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: baseline; gap: 4px; }
+  .q-label .req { color: var(--required); }
+  input[type="text"], textarea, select { width: 100%; border: 1px solid var(--gray-border); border-radius: 3px; background: var(--gray-input); font-family: inherit; font-size: 0.92rem; color: var(--text); padding: 9px 11px; outline: none; transition: border-color 0.2s; }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--blue); background: white; }
+  textarea { resize: vertical; min-height: 68px; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%23555' d='M5 7L0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
+  .radio-group { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .radio-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 3px; cursor: pointer; transition: background 0.15s; min-width: 60px; }
+  .radio-item:hover { background: var(--gray-bg); }
+  .radio-item.selected { background: var(--blue-light); }
+  .radio-item input[type="radio"] { accent-color: var(--blue); width: 18px; height: 18px; cursor: pointer; }
+  .radio-item label { cursor: pointer; font-size: 0.95rem; }
+
+  /* Funding sources dynamic blocks */
+  .funding-source-block { margin-bottom: 16px; animation: rowSlide 0.25s ease; }
+  .funding-source-block .q-label { font-size: 0.95rem; color: #555; font-weight: 600; margin-bottom: 6px; }
+
+  /* Table */
+  .side-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .side-table th { background: var(--blue-light); color: var(--blue); font-weight: 700; padding: 10px; text-align: left; border: 1px solid #c5d8f0; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+  .side-table td { border: 1px solid var(--gray-border); padding: 7px 8px; vertical-align: middle; }
+  .side-table tr:nth-child(even) td { background: #fafafa; }
+  .side-table input[type="text"], .side-table select, .side-table textarea { border: 1px solid #ddd; border-radius: 2px; padding: 6px 8px; font-size: 0.88rem; }
+  .side-table textarea { min-height: 60px; }
+  .row-num { font-weight: 700; color: #aaa; font-size: 0.78rem; text-align: center; width: 28px; white-space: nowrap; }
+
+  /* Notes cell -- hidden by default, shown on "No" */
+  .notes-cell { 
+    width: 0; 
+    min-width: 0; 
+    max-width: 0; 
+    padding: 0 !important; 
+    overflow: hidden; 
+    border-left: none !important;
+    transition: all 0.35s ease;
+  }
+  .notes-cell.visible {
+    width: 220px;
+    min-width: 160px;
+    max-width: 260px;
+    padding: 7px 8px !important;
+    border-left: 1px solid var(--gray-border) !important;
+  }
+  .notes-inner {
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .notes-cell.visible .notes-inner {
+    opacity: 1;
+    transform: translateX(0);
+    white-space: normal;
+  }
+  .notes-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #c0392b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .notes-label::before { content: '!'; display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; background: #c0392b; color: white; border-radius: 50%; font-size: 0.65rem; font-weight: 900; flex-shrink: 0; }
+
+  /* Met dropdown coloring */
+  select.met-yes { border-color: #27ae60 !important; background-color: #f0faf4 !important; color: #1a7a42; }
+  select.met-no  { border-color: #c0392b !important; background-color: #fdf0f0 !important; color: #a93226; }
+  select.met-na  { border-color: #aaa !important; background-color: #f7f7f7 !important; color: #666; }
+
+  /* Notes column header -- hidden until any row triggers it */
+  .notes-th { transition: all 0.35s ease; width: 0; padding: 0 !important; overflow: hidden; border-left: none !important; font-size: 0; }
+  .notes-th.visible { width: 220px; padding: 10px !important; border-left: 1px solid #c5d8f0 !important; font-size: 0.76rem; }
+
+  .section-title { font-size: 1.05rem; font-weight: 700; color: var(--blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 2px; background: var(--blue-light); border-radius: 1px; }
+  .info-note { font-size: 0.8rem; color: #777; background: #f7f7f7; border-left: 3px solid var(--blue); padding: 8px 12px; border-radius: 2px; margin-bottom: 14px; }
+  .piped-val { color: var(--blue); font-weight: 700; }
+  .qualtrics-note { background: #fffbe6; border: 1px solid #f0d060; border-radius: 4px; padding: 10px 14px; font-size: 0.8rem; color: #7a6200; margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start; }
+  .add-row-bar { margin-top: 14px; display: flex; align-items: center; gap: 14px; }
+  .btn-add { background: white; color: var(--blue); border: 2px dashed var(--blue); font-size: 0.88rem; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 600; transition: background 0.15s; }
+  .btn-add:hover { background: var(--blue-light); }
+  .add-hint { font-size: 0.78rem; color: #aaa; font-style: italic; }
+  .btn-remove { background: none; border: none; color: #ccc; font-size: 1.2rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; line-height: 1; transition: color 0.15s, background 0.15s; display: block; margin: auto; }
+  .btn-remove:hover { color: #c0392b; background: #fde8e8; }
+  @keyframes rowSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .new-row { animation: rowSlide 0.25s ease; }
+  .nav-bar { background: white; border: 1px solid #ccc; border-top: none; padding: 18px 48px; display: flex; justify-content: flex-end; gap: 12px; }
+  .btn { font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 10px 28px; border-radius: 4px; border: none; cursor: pointer; transition: background 0.15s; }
+  .btn-primary { background: var(--blue-btn); color: white; }
+  .btn-primary:hover { background: #0a52b8; }
+  .btn-secondary { background: white; color: var(--blue-btn); border: 1.5px solid var(--blue-btn); }
+  .btn-secondary:hover { background: var(--blue-light); }
+</style>
+</head>
+<body>
+<div class="survey-wrapper">
+  <div class="survey-header">Program Compliance &amp; Deliverables Report</div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:33%"></div></div>
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="page1">
+    <div class="page-label">Page 1 of 3 — Program Information</div>
+
+    <div class="q-block">
+      <div class="q-label">Please Select Your Program</div>
+      <select id="programSelect">
+        <option value="">-- Select a program --</option>
+        <option>ACT Team</option>
+        <option>Baxter Safe Haven</option>
+        <option>Beacon 1 - School Year Prg (Afterschool/Evening/Saturday) PS198</option>
+        <option>Beacon 3 - School Year Prg (Afterschool/Evening/Saturday) - Upper West Side</option>
+        <option>Beacon 3 - Summer Camp - Upper West Side</option>
+        <option>Capitol Hall</option>
+        <option>COFA</option>
+        <option>Community Arts</option>
+        <option>Corner House</option>
+        <option>EDW - Advance and Earn - GED Program</option>
+        <option>EDW - Advance and Earn CNA</option>
+        <option>EDW - Advance and Earn Culinary Arts Program</option>
+        <option>Food and Nutrition Department East and West</option>
+        <option>Goddard Riverside at Isaacs Center NORC</option>
+        <option>Goddard Riverside at Isaacs Older Adult Center</option>
+        <option>Goddard Riverside W 88th Older Adult Center</option>
+        <option>Hillside Sanctuary</option>
+        <option>Homeless Outreach - Downtown</option>
+        <option>Homeless Outreach - Uptown</option>
+        <option>Intensive Mobile Treatment Team (IMT)</option>
+        <option>Jack August Afterschool</option>
+        <option>Law Project</option>
+        <option>Learning to Work (LTW)</option>
+        <option>Lincoln Square - TEP - Teen Expansion Program (Summer)</option>
+        <option>Lincoln Square Afterschool</option>
+        <option>Lincoln Square NORC</option>
+        <option>Lincoln Square Summer Camp</option>
+        <option>Manhattanville Resource Center</option>
+        <option>Monument Sanctuary</option>
+        <option>Older Adult Center Lincoln Square</option>
+        <option>Older Adult NORC Program at Taft/Johnson</option>
+        <option>Options Center</option>
+        <option>Phelps House Social Services Department</option>
+        <option>Resource Center at 140th Street</option>
+        <option>Restgate Sanctuary</option>
+        <option>Star Learning Center</option>
+        <option>Stephan Russo Residence</option>
+        <option>The Senate</option>
+        <option>TOP Clubhouse</option>
+        <option>TOP Opportunities/Green Keepers</option>
+        <option>West 140th Street</option>
+        <option>West Side NORC</option>
+        <option>Young Adult ACT Team</option>
+      </select>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> How many funding sources does your program have?</div>
+      <div class="radio-group" id="fundingCountGroup">
+        <div class="radio-item selected" onclick="selectFundingCount(this, 1)"><input type="radio" name="fc" value="1" checked><label>1</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 2)"><input type="radio" name="fc" value="2"><label>2</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 3)"><input type="radio" name="fc" value="3"><label>3</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 4)"><input type="radio" name="fc" value="4"><label>4</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 5)"><input type="radio" name="fc" value="5"><label>5</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 6)"><input type="radio" name="fc" value="6"><label>6</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 7)"><input type="radio" name="fc" value="7"><label>7</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 8)"><input type="radio" name="fc" value="8"><label>8</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 9)"><input type="radio" name="fc" value="9"><label>9</label></div>
+        <div class="radio-item" onclick="selectFundingCount(this, 10)"><input type="radio" name="fc" value="10"><label>10</label></div>
+      </div>
+    </div>
+
+    <!-- Funding Source inputs: 1 always visible, 2-10 shown dynamically -->
+    <div id="fundingSourcesContainer">
+      <div class="funding-source-block" id="fsblock1">
+        <div class="q-label">Funding Source 1:</div>
+        <input type="text" id="fundingSource1" placeholder="e.g. DYCD, OTDA, DANY">
+      </div>
+      <div class="funding-source-block" id="fsblock2" style="display:none;">
+        <div class="q-label">Funding Source 2:</div>
+        <input type="text" id="fundingSource2" placeholder="e.g. OTDA">
+      </div>
+      <div class="funding-source-block" id="fsblock3" style="display:none;">
+        <div class="q-label">Funding Source 3:</div>
+        <input type="text" id="fundingSource3" placeholder="e.g. DANY">
+      </div>
+      <div class="funding-source-block" id="fsblock4" style="display:none;">
+        <div class="q-label">Funding Source 4:</div>
+        <input type="text" id="fundingSource4" placeholder="e.g. HRA">
+      </div>
+      <div class="funding-source-block" id="fsblock5" style="display:none;">
+        <div class="q-label">Funding Source 5:</div>
+        <input type="text" id="fundingSource5" placeholder="e.g. DOE">
+      </div>
+      <div class="funding-source-block" id="fsblock6" style="display:none;">
+        <div class="q-label">Funding Source 6:</div>
+        <input type="text" id="fundingSource6" placeholder="e.g. DHS">
+      </div>
+      <div class="funding-source-block" id="fsblock7" style="display:none;">
+        <div class="q-label">Funding Source 7:</div>
+        <input type="text" id="fundingSource7" placeholder="">
+      </div>
+      <div class="funding-source-block" id="fsblock8" style="display:none;">
+        <div class="q-label">Funding Source 8:</div>
+        <input type="text" id="fundingSource8" placeholder="">
+      </div>
+      <div class="funding-source-block" id="fsblock9" style="display:none;">
+        <div class="q-label">Funding Source 9:</div>
+        <input type="text" id="fundingSource9" placeholder="">
+      </div>
+      <div class="funding-source-block" id="fsblock10" style="display:none;">
+        <div class="q-label">Funding Source 10:</div>
+        <input type="text" id="fundingSource10" placeholder="">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="page2">
+    <div class="page-label">Page 2 of 3 — Deliverables</div>
+    <div class="info-note">Funding source <strong><span id="funderDisplay">DYCD</span></strong> carried over from Page 1. Add as many rows as your program needs.</div>
+    <div class="section-title">Deliverables</div>
+    <table class="side-table" id="delivTable">
+      <thead>
+        <tr>
+          <th class="row-num">#</th>
+          <th style="width:28%">Deliverable Description</th>
+          <th>Contracted Units</th>
+          <th>Actual Units</th>
+          <th>Did you meet it?</th>
+          <th class="notes-th" id="notesTh">Reason not met</th>
+          <th style="width:30px;"></th>
+        </tr>
+      </thead>
+      <tbody id="deliverableRows"></tbody>
+    </table>
+    <div class="add-row-bar">
+      <button class="btn-add" onclick="addRow()">+ Add Another Deliverable</button>
+      <span class="add-hint">Each program can add as many deliverables as needed</span>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page" id="page3">
+    <div class="page-label">Page 3 of 3 — FY26 Targets</div>
+    <div class="info-note">Funding source: <span class="piped-val" id="pipedFunder">DYCD</span> (carried over from Page 1)</div>
+    <div class="section-title">FY26 Targets</div>
+    <table class="side-table">
+      <thead>
+        <tr>
+          <th style="width:30%">Service</th>
+          <th>Target</th>
+          <th>Output / Outcome</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="text" placeholder="e.g. Job Placement"></td>
+          <td><input type="text" placeholder="e.g. 50"></td>
+          <td><input type="text" placeholder="e.g. 45 placed"></td>
+          <td><input type="text" placeholder="Optional"></td>
+        </tr>
+        <tr>
+          <td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td>
+        </tr>
+        <tr>
+          <td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td><td><input type="text" placeholder=""></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn btn-secondary" id="btnBack" style="display:none;" onclick="goBack()">&#8592; Back</button>
+    <button class="btn btn-primary" id="btnNext" onclick="goNext()">Next page &#8250;</button>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  const totalPages = 3;
+  let rowCount = 0;
+  const MAX_FUNDING = 10;
+
+  // Show/hide funding source fields based on selected count
+  function selectFundingCount(el, count) {
+    document.querySelectorAll('#fundingCountGroup .radio-item').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+
+    for (let i = 1; i <= MAX_FUNDING; i++) {
+      const block = document.getElementById('fsblock' + i);
+      if (block) block.style.display = (i <= count) ? 'block' : 'none';
+    }
+  }
+
+  function makeRow(num, animate) {
+    const tr = document.createElement('tr');
+    if (animate) tr.classList.add('new-row');
+    tr.dataset.id = num;
+    tr.innerHTML = `
+      <td class="row-num">${num}</td>
+      <td><textarea placeholder="Describe deliverable ${num}..."></textarea></td>
+      <td><input type="text" placeholder="e.g. 120"></td>
+      <td><input type="text" placeholder="e.g. 114"></td>
+      <td>
+        <select class="met-select" onchange="handleMetChange(this)">
+          <option value="">Select</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="na">N/A</option>
+        </select>
+      </td>
+      <td class="notes-cell">
+        <div class="notes-inner">
+          <div class="notes-label">Reason not met</div>
+          <textarea placeholder="Please explain why this deliverable was not met..."></textarea>
+        </div>
+      </td>
+      <td><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>
+    `;
+    return tr;
+  }
+
+  function handleMetChange(sel) {
+    const val = sel.value;
+    sel.className = 'met-select';
+    if (val === 'yes') sel.classList.add('met-yes');
+    else if (val === 'no') sel.classList.add('met-no');
+    else if (val === 'na') sel.classList.add('met-na');
+
+    const row = sel.closest('tr');
+    const notesCell = row.querySelector('.notes-cell');
+    if (val === 'no' || val === 'na') {
+      notesCell.classList.add('visible');
+    } else {
+      notesCell.classList.remove('visible');
+      notesCell.querySelector('textarea').value = '';
+    }
+    updateNotesHeader();
+  }
+
+  function updateNotesHeader() {
+    const anyNo = [...document.querySelectorAll('.met-select')].some(s => s.value === 'no' || s.value === 'na');
+    document.getElementById('notesTh').classList.toggle('visible', anyNo);
+  }
+
+  function addRow() {
+    rowCount++;
+    document.getElementById('deliverableRows').appendChild(makeRow(rowCount, rowCount > 1));
+    refreshButtons();
+    updateNotesHeader();
+  }
+
+  function removeRow(btn) {
+    const row = btn.closest('tr');
+    row.style.transition = 'opacity 0.2s';
+    row.style.opacity = '0';
+    setTimeout(() => { row.remove(); renumber(); updateNotesHeader(); }, 200);
+  }
+
+  function renumber() {
+    document.querySelectorAll('#deliverableRows tr').forEach((row, i) => {
+      row.querySelector('.row-num').textContent = i + 1;
+    });
+    refreshButtons();
+  }
+
+  function refreshButtons() {
+    const rows = document.querySelectorAll('#deliverableRows tr');
+    rows.forEach(row => {
+      const btn = row.querySelector('.btn-remove');
+      if (btn) btn.style.visibility = rows.length > 1 ? 'visible' : 'hidden';
+    });
+  }
+
+  function goNext() {
+    if (currentPage < totalPages) {
+      if (currentPage === 1) {
+        const fs1 = document.getElementById('fundingSource1').value.trim() || 'Funder';
+        document.getElementById('funderDisplay').textContent = fs1;
+        document.getElementById('pipedFunder').textContent = fs1;
+      }
+      document.getElementById('page' + currentPage).classList.remove('active');
+      currentPage++;
+      document.getElementById('page' + currentPage).classList.add('active');
+      updateNav();
+    } else {
+      alert('Survey submitted! In Qualtrics this would save all responses.');
+    }
+  }
+
+  function goBack() {
+    if (currentPage > 1) {
+      document.getElementById('page' + currentPage).classList.remove('active');
+      currentPage--;
+      document.getElementById('page' + currentPage).classList.add('active');
+      updateNav();
+    }
+  }
+
+  function updateNav() {
+    document.getElementById('progressBar').style.width = ((currentPage / totalPages) * 100) + '%';
+    document.getElementById('btnBack').style.display = currentPage > 1 ? 'inline-block' : 'none';
+    document.getElementById('btnNext').textContent = currentPage === totalPages ? 'Submit ✓' : 'Next page ›';
+  }
+
+  addRow(); addRow(); addRow();
+</script>
+</body>
+</html>
